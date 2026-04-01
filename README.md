@@ -17,12 +17,14 @@ The codebase separates configuration, schemas, prompts, middleware, model constr
 ```text
 .
 ├── .env.example
+├── app.py
 ├── main.py
 ├── requirements.txt
 ├── src/langchain_guardrails_demo/
 │   ├── agent.py
 │   ├── app.py
 │   ├── config.py
+│   ├── presentation.py
 │   ├── prompts.py
 │   ├── schemas.py
 │   ├── guardrails/
@@ -71,11 +73,30 @@ Recommended Python version: `3.12` or `3.13`. The current LangChain dependency s
 PYTHONPATH=src python main.py
 ```
 
-Example prompt:
+Interactive prompt:
 
 ```text
 Summarize the benefits of structured output in LangChain.
 ```
+
+Direct prompt:
+
+```bash
+PYTHONPATH=src python main.py --prompt "Explain how guardrails reduce unsafe output." --pretty
+```
+
+## Streamlit Interface
+
+```bash
+PYTHONPATH=src streamlit run app.py
+```
+
+The Streamlit frontend provides:
+
+- a styled single-page interface for general inference
+- structured rendering for topic, answer, safety notes, and sources
+- recent prompt history within the active session
+- a raw-response view for inspection and debugging
 
 ## Testing
 
@@ -90,6 +111,7 @@ The test suite is designed to validate the project at multiple layers:
 - `tests/test_output_guardrail.py` validates the output-review middleware behavior for both safe and unsafe model responses.
 - `tests/test_config.py` checks environment-driven configuration loading, including required-key enforcement and default model fallback behavior.
 - `tests/test_app.py` covers the application inference path by verifying that user input is packaged and sent to the underlying agent correctly.
+- `tests/test_presentation.py` verifies response formatting for both structured and fallback inference outputs.
 - `tests/test_schemas.py` validates the Pydantic data contracts, including successful parsing and failure behavior for invalid payloads.
 
 These tests are intentionally network-independent so they can run in CI without requiring a live Gemini API call.
