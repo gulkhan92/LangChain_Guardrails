@@ -43,14 +43,28 @@ The codebase separates configuration, schemas, prompts, middleware, model constr
 - `AssistantResponse` and `SafetyVerdict` in [schemas.py](/Users/dev/Documents/LangChain_Guardrails/src/langchain_guardrails_demo/schemas.py) formalize the response and safety-review contracts.
 - `GuardrailsApplication` in [app.py](/Users/dev/Documents/LangChain_Guardrails/src/langchain_guardrails_demo/app.py) exposes a minimal application entrypoint for interactive use or future service integration.
 
-## Setup
+## Step-by-Step Setup
+
+### Step 1: Create a virtual environment
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+### Step 2: Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
+
+### Step 3: Create the environment file
+
+```bash
 cp .env.example .env
 ```
+
+### Step 4: Configure Gemini access
 
 Set your Gemini key in `.env`:
 
@@ -67,29 +81,35 @@ GEMINI_SAFETY_MODEL=gemini-2.0-flash
 
 Recommended Python version: `3.12` or `3.13`. The current LangChain dependency stack still emits compatibility warnings on Python `3.14`.
 
-## Run
+## Step-by-Step Execution
+
+### Step 5: Run inference from the command line
 
 ```bash
 PYTHONPATH=src python main.py
 ```
 
-Interactive prompt:
+The CLI will prompt you for a request and return the model response as JSON.
+
+Example interactive prompt:
 
 ```text
 Summarize the benefits of structured output in LangChain.
 ```
 
-Direct prompt:
+You can also pass the prompt directly:
 
 ```bash
 PYTHONPATH=src python main.py --prompt "Explain how guardrails reduce unsafe output." --pretty
 ```
 
-## Streamlit Interface
+### Step 6: Run the Streamlit frontend
 
 ```bash
 PYTHONPATH=src streamlit run app.py
 ```
+
+After the application opens in the browser, enter a prompt in the text area and submit it to run guarded inference.
 
 The Streamlit frontend provides:
 
@@ -98,11 +118,43 @@ The Streamlit frontend provides:
 - recent prompt history within the active session
 - a raw-response view for inspection and debugging
 
-## Testing
+## Step-by-Step Processing Flow
+
+When a prompt is submitted, the system processes it in the following order:
+
+### Step 1: Load configuration
+
+- `Settings.from_env()` reads the Gemini configuration from `.env`.
+
+### Step 2: Build the guarded agent
+
+- `build_guarded_agent()` creates the Gemini chat model, registers middleware, and enables structured output.
+
+### Step 3: Apply input guardrails
+
+- `KeywordBlocklistMiddleware` checks the incoming request for disallowed keywords before inference begins.
+- PII middleware redacts or masks configured sensitive data in the request path.
+
+### Step 4: Run model inference
+
+- The agent sends the prompt to Gemini and requests a structured response matching `AssistantResponse`.
+
+### Step 5: Apply output guardrails
+
+- `LLMOutputSafetyMiddleware` reviews the generated answer with a structured `SafetyVerdict`.
+- If the answer fails the review, the response is replaced with a safe refusal.
+
+### Step 6: Present the response
+
+- `presentation.py` formats the final result for CLI output and Streamlit rendering.
+
+## Step-by-Step Testing
 
 ```bash
 PYTHONPATH=src pytest
 ```
+
+Run the full test suite after setup to verify the local environment and core application behavior.
 
 The test suite is designed to validate the project at multiple layers:
 
